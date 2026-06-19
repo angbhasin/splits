@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}{{ swimmer.name }} – Splits{% endblock %}
+{% block content %}
+<div class="card" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+  <div>
+    <h1 style="margin-bottom:0.25rem">{{ swimmer.name }}</h1>
+    <p style="color:#718096;font-size:0.9rem">{{ swimmer.times | length }} time(s) recorded</p>
+  </div>
+  {% if is_owner %}
+  <div style="display:flex;gap:0.5rem">
+    <a href="/my-times" class="btn btn-primary">Edit my times</a>
+    <button class="btn" style="background:#2a2a2a;border:1px solid #333;color:#ccc" onclick="document.getElementById('edit-profile').style.display=document.getElementById('edit-profile').style.display==='none'?'block':'none'">Edit profile</button>
+  </div>
+  {% endif %}
+</div>
+
+{% if is_owner %}
+<div id="edit-profile" style="display:none">
+<div class="card">
+  <h2 style="margin-bottom:1rem">Edit Profile</h2>
+  {% if profile_success %}<div class="alert alert-success" style="margin-bottom:1rem;padding:0.6rem 0.9rem;background:#1a3a1a;border:1px solid #2d5a2d;border-radius:6px;color:#6fcf6f;font-size:0.9rem">{{ profile_success }}</div>{% endif %}
+  {% if profile_error %}<div class="alert alert-error" style="margin-bottom:1rem;padding:0.6rem 0.9rem;background:#3a1a1a;border:1px solid #5a2d2d;border-radius:6px;color:#f87171;font-size:0.9rem">{{ profile_error }}</div>{% endif %}
+  <form method="post" action="/profile/update">
+    <div class="form-group">
+      <label>Full Name</label>
+      <input type="text" name="name" value="{{ swimmer.name }}" required>
+    </div>
+    <div class="form-group">
+      <label>Gender</label>
+      <select name="gender" required>
+        <option value="male" {% if swimmer.gender == "male" %}selected{% endif %}>Male</option>
+        <option value="female" {% if swimmer.gender == "female" %}selected{% endif %}>Female</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Teams / Clubs <span style="color:#555;font-weight:400">(optional)</span></label>
+      <input type="text" name="team1" value="{{ swimmer.team1 or '' }}" placeholder="e.g. Palo Alto Stanford Aquatics" style="margin-bottom:0.5rem">
+      <input type="text" name="team2" value="{{ swimmer.team2 or '' }}" placeholder="Second team (optional)" style="margin-bottom:0.5rem">
+      <input type="text" name="team3" value="{{ swimmer.team3 or '' }}" placeholder="Third team (optional)">
+    </div>
+    <button type="submit" class="btn btn-primary">Save changes</button>
+  </form>
+</div>
+</div>
+{% endif %}
+
+{% for course in courses %}
+{% set course_times = times_by_course[course] %}
+{% set has_individual = events | selectattr('__class__') | list %}
+{% if course_times %}
+<div class="card">
+  <h2>
+    <span class="tag tag-{{ course | lower }}">{{ course }}</span>
+    {{ "Short Course Yards" if course == "SCY" else "Long Course Meters" }}
+  </h2>
+  <table>
+    <thead><tr><th>Event</th><th>Best Time</th></tr></thead>
+    <tbody>
+    {% for event in all_events %}
+      {% if event in course_times %}
+      <tr>
+        <td>{{ event }}</td>
+        <td style="font-family:monospace;font-size:1rem;font-weight:600;color:#2b6cb0">{{ course_times[event] }}</td>
+      </tr>
+      {% endif %}
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endfor %}
+
+{% if not times_by_course["SCY"] and not times_by_course["LCM"] %}
+<div class="card" style="text-align:center;color:#718096;padding:2rem">
+  <p>No times uploaded yet.</p>
+  {% if is_owner %}
+    <a href="/my-times" class="btn btn-primary" style="margin-top:1rem">Add your times</a>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

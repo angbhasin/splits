@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Import from SwimCloud – Splits{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Import from SwimCloud</h1>
+  <p style="color:#718096;font-size:0.9rem;margin-bottom:1.25rem">
+    Copy your times table from your SwimCloud profile and paste it below.
+    We'll automatically find your SCY and LCM best times.
+  </p>
+  <form method="post" action="/import">
+    <div class="form-group">
+      <label>Paste your SwimCloud times here</label>
+      <textarea name="pasted_text" required rows="12"
+        placeholder="Paste the times table from your SwimCloud profile here..."
+        style="width:100%;padding:0.6rem 0.75rem;border:1px solid #cbd5e0;border-radius:6px;font-size:0.875rem;font-family:monospace;resize:vertical"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Import Times</button>
+  </form>
+</div>
+
+{% if imported is not none %}
+  {% if imported %}
+  <div class="card">
+    <div class="alert alert-success" style="margin-bottom:1rem">Imported {{ imported | length }} time(s) successfully.</div>
+    <table>
+      <thead><tr><th>Event</th><th>Course</th><th>Time</th></tr></thead>
+      <tbody>
+      {% for r in imported %}
+      <tr>
+        <td>{{ r.event }}</td>
+        <td><span class="tag tag-{{ r.course | lower }}">{{ r.course }}</span></td>
+        <td style="font-family:monospace;font-weight:600;color:#2b6cb0">{{ r.time_str }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="card">
+    <div class="alert alert-error">No times could be imported.</div>
+  </div>
+  {% endif %}
+
+  {% if errors %}
+  <div class="card">
+    <h2 style="color:#c53030;font-size:1rem;margin-bottom:0.5rem">Skipped / Warnings</h2>
+    <ul style="font-size:0.85rem;color:#718096;padding-left:1.25rem">
+      {% for e in errors %}<li>{{ e }}</li>{% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+{% endif %}
+
+<div class="card" style="background:#fffbeb;border:1px solid #f6e05e">
+  <h2 style="color:#744210;font-size:1rem;margin-bottom:0.5rem">How to copy your SwimCloud times</h2>
+  <ol style="font-size:0.875rem;color:#744210;padding-left:1.25rem;line-height:1.8">
+    <li>Go to <strong>swimcloud.com</strong> and open your swimmer profile</li>
+    <li>Scroll down to your <strong>Best Times</strong> table</li>
+    <li>Click and drag to select all the rows in the table (including headers)</li>
+    <li>Copy with <strong>Ctrl+C</strong> (or Cmd+C on Mac)</li>
+    <li>Paste into the box above and click <strong>Import Times</strong></li>
+  </ol>
+</div>
+{% endblock %}

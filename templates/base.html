@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}splits{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif; background: #1f1f1f; color: #e8e3dc; min-height: 100vh; }
+
+    /* Sidebar */
+    .sidebar {
+      position: fixed; top: 0; left: 0; height: 100vh;
+      width: 240px; background: #1a1a1a; border-right: 1px solid #2a2a2a;
+      z-index: 200; transform: translateX(-100%);
+      transition: transform 0.25s ease;
+      padding: 1.25rem 1rem;
+    }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-close {
+      background: none; border: none; cursor: pointer;
+      color: #666; padding: 4px; margin-bottom: 1.5rem;
+      display: flex; align-items: center;
+      transition: color 0.15s; border-radius: 4px;
+    }
+    .sidebar-close:hover { color: #e8e3dc; }
+    .sidebar-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5); z-index: 199;
+    }
+    .sidebar-overlay.open { display: block; }
+
+    /* Nav */
+    nav {
+      background: #1a1a1a;
+      border-bottom: 1px solid #2a2a2a;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      padding: 0 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      height: 52px;
+    }
+    .nav-brand {
+      font-size: 1.35rem; font-weight: 700;
+      color: #e8e3dc; text-decoration: none;
+      letter-spacing: 0.04em;
+      margin-right: auto;
+    }
+    .nav-link {
+      color: #777; text-decoration: none;
+      font-size: 1rem; font-weight: 500;
+      transition: color 0.15s;
+    }
+    .nav-link:hover { color: #e8e3dc; }
+
+    /* Expanding search */
+    .nav-search { position: relative; display: flex; align-items: center; }
+    .nav-search-btn {
+      background: none; border: none; cursor: pointer;
+      color: #777; padding: 6px; display: flex; align-items: center;
+      transition: color 0.15s; border-radius: 6px;
+    }
+    .nav-search-btn:hover { color: #e8e3dc; }
+    .nav-search-form {
+      position: absolute; right: 32px; top: 50%; transform: translateY(-50%);
+      width: 0; overflow: hidden; transition: width 0.25s ease;
+    }
+    .nav-search-form.open { width: 260px; }
+    .nav-search-input {
+      width: 100%; padding: 0.35rem 0.65rem;
+      background: #2a2a2a; border: 1px solid #3a3a3a;
+      border-radius: 6px; font-size: 0.875rem; color: #e8e3dc;
+      outline: none;
+    }
+    .nav-search-input:focus { border-color: #555; }
+    .nav-search-input::placeholder { color: #4a4a4a; }
+
+    /* Account dropdown */
+    .nav-account { position: relative; }
+    .nav-account-btn {
+      background: none; border: none; cursor: pointer;
+      color: #777; font-size: 1rem; font-weight: 500;
+      padding: 0.3rem 0.5rem; border-radius: 6px;
+      display: flex; align-items: center; gap: 0.4rem;
+      transition: color 0.15s;
+    }
+    .nav-account-btn:hover { color: #e8e3dc; }
+    .nav-dropdown {
+      position: absolute; right: 0; top: calc(100% + 8px);
+      background: #252525; border: 1px solid #333;
+      border-radius: 8px; min-width: 160px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      opacity: 0; pointer-events: none;
+      transform: translateY(-4px);
+      transition: opacity 0.15s, transform 0.15s;
+      z-index: 100;
+    }
+    .nav-account.open .nav-dropdown { opacity: 1; pointer-events: all; transform: translateY(0); }
+    .nav-dropdown a, .nav-dropdown button {
+      display: block; width: 100%; text-align: left;
+      padding: 0.6rem 1rem; font-size: 0.875rem;
+      color: #bbb; text-decoration: none;
+      background: none; border: none; cursor: pointer;
+      transition: background 0.1s, color 0.1s;
+    }
+    .nav-dropdown a:hover, .nav-dropdown button:hover { background: #2e2e2e; color: #e8e3dc; }
+    .nav-dropdown hr { border: none; border-top: 1px solid #333; margin: 0.25rem 0; }
+
+    /* Layout */
+    .container { max-width: 900px; margin: 2rem auto; padding: 0 1.5rem; }
+
+    /* Cards */
+    .card { background: #252525; border: 1px solid #2e2e2e; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.25rem; }
+
+    /* Typography */
+    h1 { font-size: 1.5rem; margin-bottom: 1rem; color: #e8e3dc; font-weight: 600; }
+    h2 { font-size: 1.05rem; margin-bottom: 0.75rem; color: #c8c3bc; font-weight: 600; }
+    label { display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.3rem; color: #888; }
+
+    /* Inputs */
+    input, select, textarea {
+      width: 100%; padding: 0.5rem 0.75rem;
+      background: #1f1f1f; border: 1px solid #333;
+      border-radius: 6px; font-size: 0.9rem; color: #e8e3dc; font-family: inherit;
+      transition: border-color 0.15s;
+    }
+    input::placeholder, textarea::placeholder { color: #666; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #555; }
+    select option { background: #1f1f1f; }
+
+    /* Buttons */
+    .btn { display: inline-block; padding: 0.45rem 1.1rem; border-radius: 6px; font-size: 0.875rem; font-weight: 500; cursor: pointer; border: none; text-decoration: none; transition: background 0.15s; font-family: "DM Sans", sans-serif; }
+    .btn-primary { background: #c96442; color: #fff; }
+    .btn-primary:hover { background: #b55838; }
+    .btn-danger { background: transparent; color: #f87171; font-size: 0.8rem; padding: 0.3rem 0.7rem; border: 1px solid #4a2020; }
+    .btn-danger:hover { background: #2d1515; }
+    .btn-sm { padding: 0.3rem 0.75rem; font-size: 0.82rem; }
+
+    /* Alerts */
+    .alert { padding: 0.7rem 1rem; border-radius: 6px; margin-bottom: 1rem; font-size: 0.875rem; }
+    .alert-error { background: #2d1515; border: 1px solid #4a2020; color: #f87171; }
+    .alert-success { background: #152d1a; border: 1px solid #1f4a28; color: #4ade80; }
+
+    /* Forms */
+    .form-group { margin-bottom: 1rem; }
+
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    th { color: #888; text-align: left; padding: 0.55rem 0.75rem; border-bottom: 1px solid #2a2a2a; font-size: 0.9rem; text-transform: lowercase; letter-spacing: 0.02em; font-weight: 600; background: transparent; }
+    td { padding: 0.55rem 0.75rem; border-bottom: 1px solid #272727; color: #c8c3bc; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #2a2a2a; }
+
+    /* Tags */
+    .tag { display: inline-block; padding: 0.15rem 0.45rem; border-radius: 4px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; }
+    .tag-scy { background: #1a2535; color: #6da8d0; }
+    .tag-lcm { background: #1a2a1e; color: #5bb876; }
+
+    /* Misc */
+    .no-time { color: #3a3a3a; font-style: italic; }
+    .search-row { display: flex; gap: 0.5rem; }
+    .search-row input { flex: 1; }
+    a { color: #c96442; text-decoration: none; }
+    a:hover { color: #e07050; }
+
+    /* ── Mobile ─────────────────────────────────────────────────────────────── */
+    @media (max-width: 640px) {
+      /* Nav */
+      nav { padding: 0 0.75rem; gap: 0.5rem; }
+      .nav-brand span:first-child { font-size: 1.5rem; }
+      .nav-brand span:last-child { display: none; }
+      .nav-link { display: none; }
+      .nav-search-form.open { width: 160px; }
+
+      /* Container */
+      .container { margin: 1rem auto; padding: 0 0.75rem; }
+
+      /* Cards */
+      .card { padding: 1rem; }
+
+      /* Tables: horizontal scroll */
+      .card > table, .table-wrap { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+      /* Buttons stacking */
+      .card > div > .btn + .btn { margin-top: 0.4rem; }
+
+      /* Typography */
+      h1 { font-size: 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<div class="sidebar" id="sidebar">
+  <button class="sidebar-close" id="sidebarClose">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+    </svg>
+  </button>
+</div>
+
+<nav>
+  <button id="sidebarOpen" style="background:none;border:none;cursor:pointer;color:#777;padding:4px;display:flex;align-items:center;border-radius:4px;transition:color 0.15s" onmouseover="this.style.color='#e8e3dc'" onmouseout="this.style.color='#777'">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  </button>
+  <a href="/" class="nav-brand" style="display:flex;align-items:flex-end;gap:0.5rem">
+    <span style="font-size:2rem">splits</span>
+    <span style="font-size:0.8rem;font-weight:400;color:#777;letter-spacing:0.02em;margin-left:0.5rem;margin-bottom:7px">created by angad</span>
+  </a>
+
+  {% if user %}
+    <a href="/my-times" class="nav-link">my times</a>
+    <a href="/import" class="nav-link">import</a>
+  {% endif %}
+
+  <!-- Expanding search -->
+  <div class="nav-search">
+    <form method="get" action="/" class="nav-search-form" id="searchForm">
+      <input type="text" name="q" id="searchInput" class="nav-search-input"
+        value="{{ request.query_params.get('q', '') }}"
+        placeholder="Search swimmers…" autocomplete="off">
+    </form>
+    <button class="nav-search-btn" id="searchBtn" type="button" aria-label="Search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Account -->
+  {% if user %}
+  <div class="nav-account" id="accountMenu">
+    <button class="nav-account-btn" id="accountBtn">
+      {{ user.name.split()[0] | lower }}
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <div class="nav-dropdown">
+      <a href="/swimmer/{{ user.id }}">my profile</a>
+      <a href="/settings">settings</a>
+      <hr>
+      <form method="post" action="/logout" style="margin:0">
+        <button type="submit">log out</button>
+      </form>
+    </div>
+  </div>
+  {% else %}
+    <a href="/login" class="nav-link">log in</a>
+    <a href="/register" class="btn btn-primary btn-sm">sign up</a>
+  {% endif %}
+</nav>
+
+<div class="container">
+  {% block content %}{% endblock %}
+</div>
+
+<script>
+  const searchBtn = document.getElementById('searchBtn');
+  const searchForm = document.getElementById('searchForm');
+  const searchInput = document.getElementById('searchInput');
+
+  if (searchBtn) {
+    searchBtn.addEventListener('click', () => {
+      searchForm.classList.toggle('open');
+      if (searchForm.classList.contains('open')) searchInput.focus();
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') searchForm.classList.remove('open');
+    });
+    document.addEventListener('click', e => {
+      if (!searchBtn.contains(e.target) && !searchForm.contains(e.target))
+        searchForm.classList.remove('open');
+    });
+    if (searchInput && searchInput.value) searchForm.classList.add('open');
+  }
+
+  const sidebarOpen = document.getElementById('sidebarOpen');
+  const sidebarClose = document.getElementById('sidebarClose');
+  const sidebar = document.getElementById('sidebar');
+  const sidebarOverlay = document.getElementById('sidebarOverlay');
+  function openSidebar() { sidebar.classList.add('open'); sidebarOverlay.classList.add('open'); }
+  function closeSidebar() { sidebar.classList.remove('open'); sidebarOverlay.classList.remove('open'); }
+  sidebarOpen.addEventListener('click', openSidebar);
+  sidebarClose.addEventListener('click', closeSidebar);
+  sidebarOverlay.addEventListener('click', closeSidebar);
+
+  const accountBtn = document.getElementById('accountBtn');
+  const accountMenu = document.getElementById('accountMenu');
+  if (accountBtn) {
+    accountBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      accountMenu.classList.toggle('open');
+    });
+    document.addEventListener('click', () => accountMenu && accountMenu.classList.remove('open'));
+  }
+</script>
+</body>
+</html>

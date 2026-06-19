@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% block title %}Splits{% endblock %}
+{% block content %}
+
+{% if q %}
+<div class="card">
+  <h2>Results for "{{ q }}"</h2>
+  {% if swimmers %}
+  <table>
+    <thead><tr><th>Name</th><th>Events recorded</th><th></th></tr></thead>
+    <tbody>
+    {% for s in swimmers %}
+      <tr>
+        <td><strong>{{ s.name }}</strong></td>
+        <td>{{ s.times | length }}</td>
+        <td><a href="/swimmer/{{ s.id }}" class="btn btn-primary btn-sm">View times</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="color:#6b6b6b">No swimmers found matching "{{ q }}".</p>
+  {% endif %}
+</div>
+
+{% else %}
+
+<!-- Stats bar -->
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2rem">
+  <div style="background:#242424;border:1px solid #2e2e2e;border-radius:8px;padding:1.1rem 1.25rem;box-shadow:0 4px 16px rgba(0,0,0,0.4)">
+    <div style="font-size:1.15rem;color:#888;margin-bottom:0.4rem">swimmers</div>
+    <div style="font-size:1.9rem;font-weight:700;color:#e8e3dc;letter-spacing:-0.02em">{{ total_swimmers }}</div>
+  </div>
+  <div style="background:#242424;border:1px solid #2e2e2e;border-radius:8px;padding:1.1rem 1.25rem;box-shadow:0 4px 16px rgba(0,0,0,0.4)">
+    <div style="font-size:1.15rem;color:#888;margin-bottom:0.4rem">times recorded</div>
+    <div style="font-size:1.9rem;font-weight:700;color:#e8e3dc;letter-spacing:-0.02em">{{ total_times }}</div>
+  </div>
+  <div style="background:#242424;border:1px solid #2e2e2e;border-radius:8px;padding:1.1rem 1.25rem;box-shadow:0 4px 16px rgba(0,0,0,0.4)">
+    {% if fastest_swim %}
+    <div style="font-size:1.15rem;color:#888;margin-bottom:0.4rem">fastest on splits</div>
+    <div style="font-size:1.9rem;font-weight:700;color:#c96442;letter-spacing:-0.02em;font-family:monospace">{{ fastest_swim.time_str }}</div>
+    <div style="font-size:0.8rem;color:#999;margin-top:0.3rem">
+      <a href="/swimmer/{{ fastest_swim.user_id }}" style="color:#999">{{ fastest_swim.name }}</a> · {{ fastest_swim.event }}
+    </div>
+    {% else %}
+    <div style="font-size:1.15rem;color:#888;margin-bottom:0.4rem">fastest on splits</div>
+    <div style="font-size:1.9rem;font-weight:700;color:#333">—</div>
+    {% endif %}
+  </div>
+</div>
+
+<div style="margin-bottom:1.25rem">
+  <h2 style="font-size:1.4rem;color:#e8e3dc;font-weight:700;letter-spacing:-0.01em">Top swims</h2>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem">
+
+  <!-- SCY panel -->
+  <div style="background:#2a2a2a;border:1px solid #363636;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.4)">
+    <div style="padding:1rem 1.25rem 0.75rem;border-bottom:1px solid #333;background:#252525;display:flex;align-items:center;gap:0.6rem">
+      <span class="tag tag-scy">SCY</span>
+      <span style="font-weight:600;font-size:0.95rem;color:#c8c3bc">Short Course Yards</span>
+    </div>
+    <table style="margin:0">
+      <thead>
+        <tr>
+          <th style="width:36px;padding-left:1.25rem;background:#242424">#</th>
+          <th style="background:#242424">Name</th>
+          <th style="background:#242424">Event</th>
+          <th style="text-align:right;padding-right:1.25rem;background:#242424">Time</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for row in scy_swims %}
+      <tr>
+        <td style="padding-left:1.25rem;color:#aaa;font-size:1rem;font-weight:700">{{ loop.index }}</td>
+        <td style="font-weight:500;color:#e8e3dc">
+          {% if row.user_id %}
+            <a href="/swimmer/{{ row.user_id }}" style="color:#c96442;text-decoration:none">{{ row.swimmer_name }}</a>
+          {% else %}
+            {{ row.swimmer_name }}
+          {% endif %}
+        </td>
+        <td style="color:#888;font-size:0.88rem">{{ row.event }}</td>
+        <td style="font-family:monospace;font-weight:800;font-size:1rem;color:#c96442;text-align:right;padding-right:1.25rem">{{ row.time_str }}</td>
+      </tr>
+      {% endfor %}
+      {% if not scy_swims %}
+      <tr><td colspan="4" style="text-align:center;color:#555;padding:2rem">No times yet</td></tr>
+      {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- LCM panel -->
+  <div style="background:#2a2a2a;border:1px solid #363636;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.4)">
+    <div style="padding:1rem 1.25rem 0.75rem;border-bottom:1px solid #333;background:#252525;display:flex;align-items:center;gap:0.6rem">
+      <span class="tag tag-lcm">LCM</span>
+      <span style="font-weight:600;font-size:0.95rem;color:#c8c3bc">Long Course Meters</span>
+    </div>
+    <table style="margin:0">
+      <thead>
+        <tr>
+          <th style="width:36px;padding-left:1.25rem;background:#242424">#</th>
+          <th style="background:#242424">Name</th>
+          <th style="background:#242424">Event</th>
+          <th style="text-align:right;padding-right:1.25rem;background:#242424">Time</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for row in lcm_swims %}
+      <tr>
+        <td style="padding-left:1.25rem;color:#aaa;font-size:1rem;font-weight:700">{{ loop.index }}</td>
+        <td style="font-weight:500;color:#e8e3dc">
+          {% if row.user_id %}
+            <a href="/swimmer/{{ row.user_id }}" style="color:#c96442;text-decoration:none">{{ row.swimmer_name }}</a>
+          {% else %}
+            {{ row.swimmer_name }}
+          {% endif %}
+        </td>
+        <td style="color:#888;font-size:0.88rem">{{ row.event }}</td>
+        <td style="font-family:monospace;font-weight:800;font-size:1rem;color:#c96442;text-align:right;padding-right:1.25rem">{{ row.time_str }}</td>
+      </tr>
+      {% endfor %}
+      {% if not lcm_swims %}
+      <tr><td colspan="4" style="text-align:center;color:#555;padding:2rem">No times yet</td></tr>
+      {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+{% if recent_users %}
+<div style="margin-top:2rem">
+  <h2 style="font-size:1.1rem;color:#e8e3dc;font-weight:600;margin-bottom:1rem">Recently joined</h2>
+  <div style="display:flex;gap:0.75rem;flex-wrap:wrap">
+    {% for u in recent_users %}
+    <a href="/swimmer/{{ u.id }}" style="background:#242424;border:1px solid #2e2e2e;border-radius:8px;padding:0.75rem 1.1rem;text-decoration:none;transition:border-color 0.15s;display:flex;align-items:center;gap:0.75rem;box-shadow:0 4px 16px rgba(0,0,0,0.4)" onmouseover="this.style.borderColor='#444'" onmouseout="this.style.borderColor='#2e2e2e'">
+      <div style="width:32px;height:32px;border-radius:50%;background:#2e2e2e;display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:600;color:#888;flex-shrink:0">
+        {{ u.name[0].upper() }}
+      </div>
+      <div>
+        <div style="font-size:0.875rem;font-weight:500;color:#e8e3dc">{{ u.name }}</div>
+        <div style="font-size:0.75rem;color:#888;margin-top:0.1rem">{{ u.times | length }} time{{ 's' if u.times | length != 1 }}</div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% endif %}
+{% endblock %}

@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block title %}My Times – Splits{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>My Times</h1>
+  <p style="color:#aaa;font-size:1rem;margin-bottom:0.75rem">Add or update your best times. Enter time as <strong>SS.mm</strong> or <strong>M:SS.mm</strong> (e.g. <code>54.32</code> or <code>1:54.32</code>).</p>
+  <p style="font-size:1rem;color:#aaa;margin-bottom:1rem"><a href="/import">Import from SwimCloud</a></p>
+  {% if error %}<div class="alert alert-error">{{ error }}</div>{% endif %}
+  {% if success %}<div class="alert alert-success">{{ success }}</div>{% endif %}
+</div>
+
+{% for course in courses %}
+<div class="card">
+  <h2>
+    <span class="tag tag-{{ course | lower }}">{{ course }}</span>
+    {{ "Short Course Yards" if course == "SCY" else "Long Course Meters" }}
+  </h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:35%">Event</th>
+        <th style="width:20%">Current Best</th>
+        <th style="width:30%">Update Time</th>
+        <th style="width:15%"></th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for event in events %}
+    {% set t = times_map[course].get(event) %}
+    <tr>
+      <td>{{ event }}</td>
+      <td style="font-family:monospace;font-weight:600;color:#2b6cb0">
+        {% if t %}{{ format_time(t.time_seconds) }}{% else %}<span class="no-time">—</span>{% endif %}
+      </td>
+      <td>
+        <form method="post" action="/times/add" style="display:flex;gap:0.4rem">
+          <input type="hidden" name="event" value="{{ event }}">
+          <input type="hidden" name="course" value="{{ course }}">
+          <input type="text" name="time_str" placeholder="e.g. 54.32" style="width:110px;padding:0.35rem 0.5rem;font-size:0.85rem">
+          <button type="submit" class="btn btn-primary btn-sm">Save</button>
+        </form>
+      </td>
+      <td>
+        {% if t %}
+        <form method="post" action="/times/delete/{{ t.id }}">
+          <button type="submit" class="btn btn-danger" onclick="return confirm('Delete this time?')">Delete</button>
+        </form>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endfor %}
+
+{% for course in courses %}
+<div class="card">
+  <h2>
+    <span class="tag tag-{{ course | lower }}">{{ course }}</span>
+    {{ "Short Course Yards" if course == "SCY" else "Long Course Meters" }} — Relay Legs
+  </h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:30%">relay</th>
+        <th style="width:20%">leg</th>
+        <th style="width:15%">current best</th>
+        <th style="width:25%">update time</th>
+        <th style="width:10%"></th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for base in relay_bases %}
+    {% set legs = relay_leg_labels(base) %}
+    <tr>
+      <td>{{ base }}</td>
+      <td>
+        <select id="leg_select_{{ course }}_{{ loop.index }}" onchange="updateRelayEvent('{{ course }}', {{ loop.index }}, '{{ base }}', this.value)" style="width:auto;padding:0.35rem 0.1rem;font-size:0.875rem;font-family:'DM Sans',sans-serif;background:transparent;border:none;color:#c8c3bc;cursor:pointer;outline:none;appearance:auto">
+          {% for leg in legs %}
+          <option value="{{ leg }}">{{ leg }}</option>
+          {% endfor %}
+        </select>
+      </td>
+      <td style="font-family:monospace;font-weight:600;color:#c96442" id="relay_best_{{ course }}_{{ loop.index }}">
+        <span class="no-time">—</span>
+      </td>
+      <td>
+        <form method="post" action="/times/add" style="display:flex;gap:0.4rem" id="relay_form_{{ course }}_{{ loop.index }}">
+          <input type="hidden" name="event" id="relay_event_{{ course }}_{{ loop.index }}" value="{{ relay_event_name(base, legs[0]) }}">
+          <input type="hidden" name="course" value="{{ course }}">
+          <input type="text" name="time_str" placeholder="e.g. 47.23" style="width:110px;padding:0.35rem 0.5rem;font-size:0.85rem">
+          <button type="submit" class="btn btn-primary btn-sm">Save</button>
+        </form>
+      </td>
+      <td id="relay_delete_{{ course }}_{{ loop.index }}"></td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endfor %}
+
+<script>
+// Build a lookup of all relay times: {course: {event_name: {id, time_str}}}
+const relayTimes = {
+  {% for course in courses %}
+  "{{ course }}": {
+    {% for base in relay_bases %}
+    {% for leg in relay_leg_labels(base) %}
+    {% set event = relay_event_name(base, leg) %}
+    {% set t = times_map[course].get(event) %}
+    {% if t %}
+    "{{ event }}": { id: {{ t.id }}, time_str: "{{ format_time(t.time_seconds) }}" },
+    {% endif %}
+    {% endfor %}
+    {% endfor %}
+  },
+  {% endfor %}
+};
+
+function updateRelayEvent(course, idx, base, leg) {
+  const eventName = base + ' - ' + leg;
+  document.getElementById('relay_event_' + course + '_' + idx).value = eventName;
+
+  const bestEl = document.getElementById('relay_best_' + course + '_' + idx);
+  const deleteEl = document.getElementById('relay_delete_' + course + '_' + idx);
+  const t = (relayTimes[course] || {})[eventName];
+
+  if (t) {
+    bestEl.innerHTML = t.time_str;
+    bestEl.style.color = '#c96442';
+    deleteEl.innerHTML = `<form method="post" action="/times/delete/${t.id}"><button type="submit" class="btn btn-danger" onclick="return confirm('Delete this time?')">Delete</button></form>`;
+  } else {
+    bestEl.innerHTML = '<span class="no-time">—</span>';
+    deleteEl.innerHTML = '';
+  }
+}
+
+// Init all dropdowns on load
+document.addEventListener('DOMContentLoaded', () => {
+  {% for course in courses %}
+  {% for base in relay_bases %}
+  (function() {
+    const sel = document.getElementById('leg_select_{{ course }}_{{ loop.index }}');
+    if (sel) updateRelayEvent('{{ course }}', {{ loop.index }}, '{{ base }}', sel.value);
+  })();
+  {% endfor %}
+  {% endfor %}
+});
+</script>
+{% endblock %}

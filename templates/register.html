@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Sign Up – Splits{% endblock %}
+{% block content %}
+<div class="card" style="max-width:420px;margin:0 auto">
+  <h1>Create Account</h1>
+  {% if error %}<div class="alert alert-error">{{ error }}</div>{% endif %}
+  <form method="post" action="/register">
+    <div class="form-group">
+      <label>Full Name</label>
+      <input type="text" name="name" required placeholder="Jane Smith">
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" name="email" required placeholder="jane@example.com">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" name="password" required placeholder="At least 6 characters">
+    </div>
+    <div class="form-group">
+      <label>Gender</label>
+      <select name="gender" required id="gender-select" style="background:transparent;border:1px solid #333;color:#666;font-family:'DM Sans',sans-serif;font-size:0.9rem;cursor:pointer" onchange="this.style.color=this.value?'#e8e3dc':'#666'">
+        <option value="" disabled selected style="background:#1f1f1f;color:#666">Select gender</option>
+        <option value="male" style="background:#1f1f1f;color:#e8e3dc">Male</option>
+        <option value="female" style="background:#1f1f1f;color:#e8e3dc">Female</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Teams / Clubs <span style="color:#555;font-weight:400">(optional, up to 3)</span></label>
+      <input type="text" name="team1" placeholder="e.g. Palo Alto Stanford Aquatics" style="margin-bottom:0.5rem">
+      <input type="text" name="team2" placeholder="Second team (optional)" style="margin-bottom:0.5rem">
+      <input type="text" name="team3" placeholder="Third team (optional)">
+    </div>
+    <button type="submit" class="btn btn-primary" style="width:100%;margin-top:0.5rem">Create Account</button>
+  </form>
+  <p style="margin-top:1rem;font-size:0.9rem;color:#666;text-align:center">
+    Already have an account? <a href="/login">Log in</a>
+  </p>
+</div>
+{% endblock %}

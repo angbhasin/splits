@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Photo Import – Splits{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Import Times from Photo</h1>
+  <p style="color:#718096;font-size:0.9rem;margin-bottom:1.25rem">
+    Take a photo of a results sheet or handwritten times list. Our AI will read
+    the swimmer names and times automatically.
+  </p>
+  <form method="post" action="/photo-import" enctype="multipart/form-data">
+    <div class="form-group">
+      <label>Upload photo (JPEG or PNG)</label>
+      <input type="file" name="photo" accept="image/jpeg,image/png,image/gif,image/webp" required
+        style="padding:0.4rem 0;border:none">
+    </div>
+    <button type="submit" class="btn btn-primary">Scan Photo</button>
+  </form>
+</div>
+
+{% if saved %}
+<div class="card">
+  <div class="alert alert-success" style="margin-bottom:1rem">
+    Saved {{ saved | length }} time(s) to your profile!
+  </div>
+  <table>
+    <thead><tr><th>Event</th><th>Course</th><th>Time</th></tr></thead>
+    <tbody>
+    {% for r in saved %}
+    <tr>
+      <td>{{ r.event }}</td>
+      <td><span class="tag tag-{{ r.course | lower }}">{{ r.course }}</span></td>
+      <td style="font-family:monospace;font-weight:600;color:#2b6cb0">{{ r.time_str }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <div style="margin-top:1rem">
+    <a href="/my-times" class="btn btn-primary">View My Times</a>
+  </div>
+</div>
+{% endif %}
+
+{% if extracted is not none %}
+  {% if extracted %}
+  <div class="card">
+    <h2 style="margin-bottom:1rem">Review Detected Times</h2>
+    <p style="color:#718096;font-size:0.875rem;margin-bottom:1rem">
+      Check the times you want to save. Only your own times will be saved — uncheck any that don't belong to you.
+    </p>
+    <form method="post" action="/photo-import/save">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:40px">Save</th>
+          <th>Swimmer</th>
+          <th>Event</th>
+          <th>Course</th>
+          <th>Time</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for r in extracted %}
+      <tr>
+        <td style="text-align:center">
+          <input type="checkbox" name="include_{{ loop.index0 }}" value="1" checked>
+          <input type="hidden" name="event_{{ loop.index0 }}" value="{{ r.event }}">
+          <input type="hidden" name="course_{{ loop.index0 }}" value="{{ r.course }}">
+          <input type="hidden" name="time_seconds_{{ loop.index0 }}" value="{{ r.time_seconds }}">
+          <input type="hidden" name="time_str_{{ loop.index0 }}" value="{{ r.time_str }}">
+        </td>
+        <td>{{ r.swimmer_name }}</td>
+        <td>{{ r.event }}</td>
+        <td><span class="tag tag-{{ r.course | lower }}">{{ r.course }}</span></td>
+        <td style="font-family:monospace;font-weight:600;color:#2b6cb0">{{ r.time_str }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <div style="margin-top:1rem">
+      <button type="submit" class="btn btn-primary">Save Selected Times</button>
+    </div>
+    </form>
+  </div>
+  {% else %}
+  <div class="card">
+    <div class="alert alert-error">No swim times could be detected in the photo.</div>
+  </div>
+  {% endif %}
+{% endif %}
+
+{% if errors %}
+<div class="card">
+  <h2 style="color:#c53030;font-size:1rem;margin-bottom:0.5rem">Warnings / Skipped</h2>
+  <ul style="font-size:0.85rem;color:#718096;padding-left:1.25rem">
+    {% for e in errors %}<li>{{ e }}</li>{% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<div class="card" style="background:#fffbeb;border:1px solid #f6e05e">
+  <h2 style="color:#744210;font-size:1rem;margin-bottom:0.5rem">Tips for best results</h2>
+  <ul style="font-size:0.875rem;color:#744210;padding-left:1.25rem;line-height:1.8">
+    <li>Make sure the photo is well-lit and in focus</li>
+    <li>Include the full results sheet so column headers are visible</li>
+    <li>Times should be in <strong>MM:SS.mm</strong> or <strong>SS.mm</strong> format</li>
+    <li>The sheet should show the swimmer's name next to each time</li>
+    <li>After scanning, review the detected times before saving</li>
+  </ul>
+</div>
+{% endblock %}
