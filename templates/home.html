@@ -36,16 +36,8 @@
     <div style="font-size:1.9rem;font-weight:700;color:#e8e3dc;letter-spacing:-0.02em">{{ total_times }}</div>
   </div>
   <div style="background:#242424;border:1px solid #2e2e2e;border-radius:8px;padding:1.1rem 1.25rem;box-shadow:0 4px 16px rgba(0,0,0,0.4)">
-    {% if fastest_swim %}
-    <div style="font-size:1.15rem;color:#888;margin-bottom:0.4rem">fastest on splits</div>
-    <div style="font-size:1.9rem;font-weight:700;color:#c96442;letter-spacing:-0.02em;font-family:monospace">{{ fastest_swim.time_str }}</div>
-    <div style="font-size:0.8rem;color:#999;margin-top:0.3rem">
-      <a href="/swimmer/{{ fastest_swim.user_id }}" style="color:#999">{{ fastest_swim.name }}</a> · {{ fastest_swim.event }}
-    </div>
-    {% else %}
-    <div style="font-size:1.15rem;color:#888;margin-bottom:0.4rem">fastest on splits</div>
-    <div style="font-size:1.9rem;font-weight:700;color:#333">—</div>
-    {% endif %}
+    <div style="font-size:1.15rem;color:#888;margin-bottom:0.4rem">times recorded</div>
+    <div style="font-size:1.9rem;font-weight:700;color:#e8e3dc;letter-spacing:-0.02em">{{ total_times }}</div>
   </div>
 </div>
 
@@ -148,15 +140,11 @@
       </tr>
     </thead>
     <tbody>
-    {% for row in recent_swims %}
+    {% for row in all_time_leaderboard %}
     <tr>
       <td style="padding-left:1.25rem;color:#555;font-size:0.9rem;font-weight:700">{{ loop.index }}</td>
       <td style="font-weight:500;color:#e8e3dc">
-        {% if row.user_id %}
-          <a href="/swimmer/{{ row.user_id }}" style="color:#c96442;text-decoration:none">{{ row.swimmer_name }}</a>
-        {% else %}
-          {{ row.swimmer_name }}
-        {% endif %}
+        <a href="/swimmer/{{ row.user_id }}" style="color:#c96442;text-decoration:none">{{ row.name }}</a>
       </td>
       <td style="color:#888;font-size:0.88rem">{{ row.event }}</td>
       <td>
@@ -165,6 +153,9 @@
       <td style="font-family:monospace;font-weight:800;font-size:1rem;color:#c96442;text-align:right;padding-right:1.25rem">{{ row.time_str }}</td>
     </tr>
     {% endfor %}
+    {% if not all_time_leaderboard %}
+    <tr><td colspan="5" style="text-align:center;color:#555;padding:2rem">No times recorded yet</td></tr>
+    {% endif %}
     </tbody>
   </table>
 </div>

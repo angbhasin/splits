@@ -50,14 +50,6 @@ async def home(request: Request, q: str = "", db: Session = Depends(get_db)):
     total_times = db.query(SwimTime).count()
     recent_users = db.query(User).order_by(User.id.desc()).limit(5).all()
 
-    fastest = db.query(SwimTime, User.name).join(User, User.id == SwimTime.user_id)\
-        .order_by(SwimTime.time_seconds.asc()).first()
-    fastest_swim = None
-    if fastest:
-        t, name = fastest
-        fastest_swim = {"name": name, "event": t.event, "course": t.course,
-                        "time_str": format_time(t.time_seconds), "user_id": t.user_id}
-
     # Top swims: curated featured list only
     seen = set()
     recent_swims = []
@@ -69,6 +61,21 @@ async def home(request: Request, q: str = "", db: Session = Depends(get_db)):
         recent_swims.append(dict(s, user_id=None))
         if len(recent_swims) == 30:
             break
+
+    # All-time leaderboard: fastest single time per registered user
+    top_times_raw = db.query(SwimTime, User).join(User, User.id == SwimTime.user_id)\
+        .order_by(SwimTime.time_seconds.asc()).all()
+    seen_users = set()
+    all_time_leaderboard = []
+    for t, u in top_times_raw:
+        if u.id in seen_users:
+            continue
+        seen_users.add(u.id)
+        all_time_leaderboard.append({
+            "name": u.name, "user_id": u.id,
+            "event": t.event, "course": t.course,
+            "time_str": format_time(t.time_seconds),
+        })
 
     # Week date range for display
     today = date.today()
@@ -85,7 +92,8 @@ async def home(request: Request, q: str = "", db: Session = Depends(get_db)):
         "scy_swims": scy_swims, "lcm_swims": lcm_swims,
         "date_range": date_range,
         "total_swimmers": total_swimmers, "total_times": total_times,
-        "fastest_swim": fastest_swim, "recent_users": recent_users,
+        "recent_users": recent_users,
+        "all_time_leaderboard": all_time_leaderboard,
     })
 
 
