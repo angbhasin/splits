@@ -53,7 +53,7 @@
   <h2 style="font-size:1.4rem;color:#e8e3dc;font-weight:700;letter-spacing:-0.01em">Top swims</h2>
 </div>
 
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem">
+<div class="leaderboard-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem">
 
   <!-- SCY panel -->
   <div style="background:#2a2a2a;border:1px solid #363636;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.4)">
@@ -66,7 +66,7 @@
         <tr>
           <th style="width:36px;padding-left:1.25rem;background:#242424">#</th>
           <th style="background:#242424">Name</th>
-          <th style="background:#242424">Event</th>
+          <th class="leaderboard-event" style="background:#242424">Event</th>
           <th style="text-align:right;padding-right:1.25rem;background:#242424">Time</th>
         </tr>
       </thead>
@@ -81,7 +81,7 @@
             {{ row.swimmer_name }}
           {% endif %}
         </td>
-        <td style="color:#888;font-size:0.88rem">{{ row.event }}</td>
+        <td class="leaderboard-event" style="color:#888;font-size:0.88rem">{{ row.event }}</td>
         <td style="font-family:monospace;font-weight:800;font-size:1rem;color:#c96442;text-align:right;padding-right:1.25rem">{{ row.time_str }}</td>
       </tr>
       {% endfor %}
@@ -103,7 +103,7 @@
         <tr>
           <th style="width:36px;padding-left:1.25rem;background:#242424">#</th>
           <th style="background:#242424">Name</th>
-          <th style="background:#242424">Event</th>
+          <th class="leaderboard-event" style="background:#242424">Event</th>
           <th style="text-align:right;padding-right:1.25rem;background:#242424">Time</th>
         </tr>
       </thead>
@@ -118,7 +118,7 @@
             {{ row.swimmer_name }}
           {% endif %}
         </td>
-        <td style="color:#888;font-size:0.88rem">{{ row.event }}</td>
+        <td class="leaderboard-event" style="color:#888;font-size:0.88rem">{{ row.event }}</td>
         <td style="font-family:monospace;font-weight:800;font-size:1rem;color:#c96442;text-align:right;padding-right:1.25rem">{{ row.time_str }}</td>
       </tr>
       {% endfor %}
