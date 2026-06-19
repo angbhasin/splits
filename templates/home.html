@@ -131,6 +131,44 @@
 
 </div>
 
+<!-- Big leaderboard -->
+<div style="margin-top:2rem;margin-bottom:1.25rem">
+  <h2 style="font-size:1.4rem;color:#e8e3dc;font-weight:700;letter-spacing:-0.01em">All-time leaderboard</h2>
+  <p style="color:#666;font-size:0.85rem;margin-top:0.25rem">Fastest swims recorded on splits</p>
+</div>
+<div style="background:#2a2a2a;border:1px solid #363636;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.4)">
+  <table style="margin:0">
+    <thead>
+      <tr>
+        <th style="width:36px;padding-left:1.25rem;background:#242424">#</th>
+        <th style="background:#242424">Name</th>
+        <th style="background:#242424">Event</th>
+        <th style="background:#242424">Course</th>
+        <th style="text-align:right;padding-right:1.25rem;background:#242424">Time</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for row in recent_swims %}
+    <tr>
+      <td style="padding-left:1.25rem;color:#555;font-size:0.9rem;font-weight:700">{{ loop.index }}</td>
+      <td style="font-weight:500;color:#e8e3dc">
+        {% if row.user_id %}
+          <a href="/swimmer/{{ row.user_id }}" style="color:#c96442;text-decoration:none">{{ row.swimmer_name }}</a>
+        {% else %}
+          {{ row.swimmer_name }}
+        {% endif %}
+      </td>
+      <td style="color:#888;font-size:0.88rem">{{ row.event }}</td>
+      <td>
+        <span class="tag tag-{{ row.course | lower }}">{{ row.course }}</span>
+      </td>
+      <td style="font-family:monospace;font-weight:800;font-size:1rem;color:#c96442;text-align:right;padding-right:1.25rem">{{ row.time_str }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
 {% if recent_users %}
 <div style="margin-top:2rem">
   <h2 style="font-size:1.1rem;color:#e8e3dc;font-weight:600;margin-bottom:1rem">Recently joined</h2>
